@@ -132,20 +132,21 @@ impl Extension for JavaExtension {
         match completion.kind? {
             CompletionKind::Method => {
                 let detail = completion.detail.unwrap();
-                let (name_and_params, return_type) = detail.split_once(" : ").unwrap();
-                let left_point_index = name_and_params.find(".");
+                let (name_and_params, _return_type) = detail.split_once(" : ").unwrap();
+                let left_point_index = name_and_params.rfind(".");
                 let index = match left_point_index {
                     Some(value) => value + 1,
-                    None => 0
+                    _ => 0
                 };
                 let name = &name_and_params[index..name_and_params.len()];
-                let code = format!("{return_type} {name}");
+                let _type = &name_and_params[0..(index - 1)];
+                let code = format!("{_type} {name}");
                 
                 Some(CodeLabel {
                     spans: vec![
                         CodeLabelSpan::literal(name, Some("attribute".to_string())),
                         CodeLabelSpan::literal(" : ", None),
-                        CodeLabelSpan::literal(return_type, Some("type".to_string())),
+                        CodeLabelSpan::literal(_type, Some("type".to_string())),
                     ],
                     filter_range: (0..name.len()).into(),
                     code,
@@ -165,10 +166,10 @@ impl Extension for JavaExtension {
             CompletionKind::Constant => {
                 let detail = completion.detail.unwrap();
                 let (name, _type) = detail.split_once(" : ").unwrap();
-                let first_point_index = name.find(".");
+                let first_point_index = name.rfind(".");
                 let index = match first_point_index {
                     Some(value) => value + 1,
-                    None => 0
+                    _ => 0
                 };
                 let new_name = &name[index..name.len()];
                 let code = format!("{_type} {new_name}");
