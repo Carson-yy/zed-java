@@ -133,17 +133,21 @@ impl Extension for JavaExtension {
             CompletionKind::Method => {
                 let detail = completion.detail.unwrap();
                 let (name_and_params, return_type) = detail.split_once(" : ").unwrap();
-                let index = name_and_params.find(".").unwrap() + 1;
+                let left_point_index = name_and_params.find(".");
+                let index = match left_point_index {
+                    Some(value) => value + 1,
+                    None => 0
+                };
                 let name = &name_and_params[index..name_and_params.len()];
                 let code = format!("{return_type} {name}");
-
+                
                 Some(CodeLabel {
                     spans: vec![
                         CodeLabelSpan::literal(name, Some("attribute".to_string())),
                         CodeLabelSpan::literal(" : ", None),
                         CodeLabelSpan::literal(return_type, Some("type".to_string())),
                     ],
-                    filter_range: (0..name_and_params.len()).into(),
+                    filter_range: (0..name.len()).into(),
                     code,
                 })
             }
@@ -161,7 +165,11 @@ impl Extension for JavaExtension {
             CompletionKind::Constant => {
                 let detail = completion.detail.unwrap();
                 let (name, _type) = detail.split_once(" : ").unwrap();
-                let index = name.find(".").unwrap() + 1;
+                let first_point_index = name.find(".");
+                let index = match first_point_index {
+                    Some(value) => value + 1,
+                    None => 0
+                };
                 let new_name = &name[index..name.len()];
                 let code = format!("{_type} {new_name}");
                 let highlight_name = match completion.kind? {
@@ -176,7 +184,7 @@ impl Extension for JavaExtension {
                         CodeLabelSpan::literal(" : ", None),
                         CodeLabelSpan::literal(_type, None),
                     ],
-                    filter_range: (0..name.len()).into(),
+                    filter_range: (0..new_name.len()).into(),
                     code,
                 })
             } 
